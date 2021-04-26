@@ -5,20 +5,20 @@ import base64
 import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.datasets import load_diabetes
 
 #---------------------------------#
 # Page layout
 ## Page expands to full width
-st.set_page_config(page_title='The Machine Learning Hyperparameter Optimization App',
-    layout='wide')
+st.set_page_config(page_title='The Machine Learning Hyperparameter Optimization App')
 
 #---------------------------------#
 st.write("""
 # The Machine Learning Hyperparameter Optimization App
-**(Regression Edition)**
+###  
+## Regression Edition
 
 In this implementation, the *RandomForestRegressor()* function is used in this app for build a regression model using the **Random Forest** algorithm.
 
@@ -34,7 +34,7 @@ st.sidebar.markdown("""
 
 # Sidebar - Specify parameter settings
 st.sidebar.header('Set Parameters')
-split_size = st.sidebar.slider('Data split ratio (% for Training Set)', 10, 90, 80, 5)
+split_size = st.sidebar.slider('Data split ratio (% for Training Set)', 10, 90, 80, 5) # 10 is min, 90 is max, 80 is default, 5 is stepsize
 
 st.sidebar.subheader('Learning Parameters')
 parameter_n_estimators = st.sidebar.slider('Number of estimators (n_estimators)', 0, 500, (10,50), 50)
@@ -87,6 +87,7 @@ def build_model(df):
     #X_train.shape, Y_train.shape
     #X_test.shape, Y_test.shape
 
+    # RF regressor takes the input variables that came from the sliders and pick ups
     rf = RandomForestRegressor(n_estimators=parameter_n_estimators,
         random_state=parameter_random_state,
         max_features=parameter_max_features,
@@ -102,8 +103,12 @@ def build_model(df):
 
     st.subheader('Model Performance')
 
+    Y_pred_train = grid.predict(X_train)
+    st.write('r2_score for train ($R^2$):')
+    st.info( r2_score(Y_train, Y_pred_train) )
+
     Y_pred_test = grid.predict(X_test)
-    st.write('Coefficient of determination ($R^2$):')
+    st.write('r2_score for test ($R^2$):')
     st.info( r2_score(Y_test, Y_pred_test) )
 
     st.write('Error (MSE or MAE):')
@@ -113,7 +118,7 @@ def build_model(df):
       % (grid.best_params_, grid.best_score_))
 
     st.subheader('Model Parameters')
-    st.write(grid.get_params())
+    st.write(grid.get_params()) # prints a dict to website
 
     #-----Process grid data-----#
     grid_results = pd.concat([pd.DataFrame(grid.cv_results_["params"]),pd.DataFrame(grid.cv_results_["mean_test_score"], columns=["R2"])],axis=1)
